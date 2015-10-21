@@ -13,6 +13,9 @@ namespace FliSharp
             string ver;
             FLI.GetLibVersion(out ver);
             Console.WriteLine(ver);
+
+            string[] names;
+            FLI.List(FLI.DOMAIN.CAMERA | FLI.DOMAIN.USB, out names);
         }
 
     } // class
