@@ -10,6 +10,8 @@ namespace FliSharp
     {
         static void Main(string[] args)
         {
+            
         }
-    }
-}
+
+    } // class
+} // namespace

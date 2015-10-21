@@ -177,7 +177,123 @@ namespace FliSharp
             FILTER_STATUS_HOME_SUCCEEDED = 0x00000008
         }
 
+        #endregion // enums
+
+        //
+        #region Types
+        //
+
+        /// <summary>
+        /// Exception thrown when an API call returns non-zero, see status for details
+        /// </summary>
+        public class FliException : Exception
+        {
+            public long status;
+
+            public FliException(long status)
+            {
+                this.status = status;
+            }
+        }
+
         #endregion
+
+        //
+        #region APIs
+        //
+        // private APIs refer to entry points exposed by libfli.dll, the _RC refers to the fact that it Returns a status Code
+        // public APIs wrap with managed "calling convention" to throw exceptions vs. returning status codes
+        //
+
+        [DllImport("libfli.dll", EntryPoint="FLIOpen")] 
+        private static extern long FLIOpen_RC(out IntPtr dev, string name, DOMAIN domain);
+        public static void FLIOpen(out IntPtr dev, string name, DOMAIN domain)
+        {
+            long status = FLIOpen_RC(out dev, name, domain);
+            if (0 != status)
+                throw new FliException(status);
+        }
+
+        [DllImport("libfli.dll")] private static extern long FLISetDebugLevel(string host, DEBUG level);
+        [DllImport("libfli.dll")] private static extern long FLIClose(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIGetLibVersion(string  ver, long len);
+        [DllImport("libfli.dll")] private static extern long FLIGetModel(IntPtr dev, string  model, long len);
+        [DllImport("libfli.dll")] private static extern long FLIGetPixelSize(IntPtr dev, out double pixel_x, out double pixel_y);
+        [DllImport("libfli.dll")] private static extern long FLIGetHWRevision(IntPtr dev, out long hwrev);
+        [DllImport("libfli.dll")] private static extern long FLIGetFWRevision(IntPtr dev, out long fwrev);
+        [DllImport("libfli.dll")] private static extern long FLIGetArrayArea(IntPtr dev, out long ul_x, out long ul_y, out long lr_x, out long lr_y);
+        [DllImport("libfli.dll")] private static extern long FLIGetVisibleArea(IntPtr dev, out long ul_x, out long ul_y, out long lr_x, out long lr_y);
+        [DllImport("libfli.dll")] private static extern long FLISetExposureTime(IntPtr dev, long exptime);
+        [DllImport("libfli.dll")] private static extern long FLISetImageArea(IntPtr dev, long ul_x, long ul_y, long lr_x, long lr_y);
+        [DllImport("libfli.dll")] private static extern long FLISetHBin(IntPtr dev, long hbin);
+        [DllImport("libfli.dll")] private static extern long FLISetVBin(IntPtr dev, long vbin);
+        [DllImport("libfli.dll")] private static extern long FLISetFrameType(IntPtr dev, FRAME_TYPE frametype);
+        [DllImport("libfli.dll")] private static extern long FLICancelExposure(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIGetExposureStatus(IntPtr dev, out long timeleft);
+        [DllImport("libfli.dll")] private static extern long FLISetTemperature(IntPtr dev, double temperature);
+        [DllImport("libfli.dll")] private static extern long FLIGetTemperature(IntPtr dev, out double temperature);
+        [DllImport("libfli.dll")] private static extern long FLIGetCoolerPower(IntPtr dev, out double power);
+/*        [DllImport("libfli.dll")] private static extern long FLIGrabRow(IntPtr dev, void *buff, size_t width);
+        [DllImport("libfli.dll")] private static extern long FLIExposeFrame(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIFlushRow(IntPtr dev, long rows, long repeat);
+        [DllImport("libfli.dll")] private static extern long FLISetNFlushes(IntPtr dev, long nflushes);
+        [DllImport("libfli.dll")] private static extern long FLISetBitDepth(IntPtr dev, BIT_DEPTH bitdepth);
+        [DllImport("libfli.dll")] private static extern long FLIReadIOPort(IntPtr dev, long *ioportset);
+        [DllImport("libfli.dll")] private static extern long FLIWriteIOPort(IntPtr dev, long ioportset);
+        [DllImport("libfli.dll")] private static extern long FLIConfigureIOPort(IntPtr dev, long ioportset);
+        [DllImport("libfli.dll")] private static extern long FLILockDevice(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIUnlockDevice(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIControlShutter(IntPtr dev, SHUTTER shutter);
+        [DllImport("libfli.dll")] private static extern long FLIControlBackgroundFlush(IntPtr dev, BGFLUSH bgflush);
+        [DllImport("libfli.dll")] private static extern long FLISetDAC(IntPtr dev, unsigned long dacset);
+        [DllImport("libfli.dll")] private static extern long FLIList(DOMAIN domain, string **names);
+        [DllImport("libfli.dll")] private static extern long FLIFreeList(string *names);
+
+        [DllImport("libfli.dll")] private static extern long FLIGetFilterName(IntPtr dev, long filter, string name, size_t len);
+        [DllImport("libfli.dll")] private static extern long FLISetActiveWheel(IntPtr dev, long wheel);
+        [DllImport("libfli.dll")] private static extern long FLIGetActiveWheel(IntPtr dev, long *wheel);
+
+        [DllImport("libfli.dll")] private static extern long FLISetFilterPos(IntPtr dev, long filter);
+        [DllImport("libfli.dll")] private static extern long FLIGetFilterPos(IntPtr dev, long *filter);
+        [DllImport("libfli.dll")] private static extern long FLIGetFilterCount(IntPtr dev, long *filter);
+
+        [DllImport("libfli.dll")] private static extern long FLIStepMotor(IntPtr dev, long steps);
+        [DllImport("libfli.dll")] private static extern long FLIStepMotorAsync(IntPtr dev, long steps);
+        [DllImport("libfli.dll")] private static extern long FLIGetStepperPosition(IntPtr dev, long *position);
+        [DllImport("libfli.dll")] private static extern long FLIGetStepsRemaining(IntPtr dev, long *steps);
+        [DllImport("libfli.dll")] private static extern long FLIHomeFocuser(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLICreateList(DOMAIN domain);
+        [DllImport("libfli.dll")] private static extern long FLIDeleteList();
+        [DllImport("libfli.dll")] private static extern long FLIListFirst(DOMAIN *domain, string filename,
+		      size_t fnlen, string name, size_t namelen);
+        [DllImport("libfli.dll")] private static extern long FLIListNext(DOMAIN *domain, string filename,
+		      size_t fnlen, string name, size_t namelen);
+        [DllImport("libfli.dll")] private static extern long FLIReadTemperature(IntPtr dev,
+					CHANNEL channel, double *temperature);
+        [DllImport("libfli.dll")] private static extern long FLIGetFocuserExtent(IntPtr dev, long *extent);
+        [DllImport("libfli.dll")] private static extern long FLIUsbBulkIO(IntPtr dev, int ep, void *buf, long *len);
+        [DllImport("libfli.dll")] private static extern long FLIGetDeviceStatus(IntPtr dev, long *status);
+        [DllImport("libfli.dll")] private static extern long FLIGetCameraModeString(IntPtr dev, flimode_t mode_index, string mode_string, size_t siz);
+        [DllImport("libfli.dll")] private static extern long FLIGetCameraMode(IntPtr dev, flimode_t *mode_index);
+        [DllImport("libfli.dll")] private static extern long FLISetCameraMode(IntPtr dev, flimode_t mode_index);
+        [DllImport("libfli.dll")] private static extern long FLIHomeDevice(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIGrabFrame(IntPtr dev, void* buff, size_t buffsize, size_t* bytesgrabbed);
+        [DllImport("libfli.dll")] private static extern long FLISetTDI(IntPtr dev, flitdirate_t tdi_rate, flitdiflags_t flags);
+        [DllImport("libfli.dll")] private static extern long FLIGrabVideoFrame(IntPtr dev, void *buff, size_t size);
+        [DllImport("libfli.dll")] private static extern long FLIStopVideoMode(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIStartVideoMode(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLIGetSerialString(IntPtr dev, string  serial, size_t len);
+        [DllImport("libfli.dll")] private static extern long FLIEndExposure(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLITriggerExposure(IntPtr dev);
+        [DllImport("libfli.dll")] private static extern long FLISetFanSpeed(IntPtr dev, long fan_speed);
+        [DllImport("libfli.dll")] private static extern long FLISetVerticalTableEntry(IntPtr dev, long index, long height, long bin, long mode);
+        [DllImport("libfli.dll")] private static extern long FLIGetVerticalTableEntry(IntPtr dev, long index, long *height, long *bin, long *mode);
+        [DllImport("libfli.dll")] private static extern long FLIGetReadoutDimensions(IntPtr dev, long *width, long *hoffset, long *hbin, long *height, long *voffset, long *vbin);
+        [DllImport("libfli.dll")] private static extern long FLIEnableVerticalTable(IntPtr dev, long width, long offset, long flags);
+        [DllImport("libfli.dll")] private static extern long FLIReadUserEEPROM(IntPtr dev, long loc, long address, long length, void *rbuf);
+        [DllImport("libfli.dll")] private static extern long FLIWriteUserEEPROM(IntPtr dev, long loc, long address, long length, void *wbuf);
+*/
+        #endregion // APIs
 
     } // class
 } // namespace
