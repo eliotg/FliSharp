@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel; // for Win32Exception
 using System.Runtime.InteropServices;
 using System.Text; // for StringBuilder
 
@@ -71,8 +72,8 @@ namespace FliSharp
         /// </summary>
         public enum BIT_DEPTH : int
         {
-            _8BIT = 0,
-            _16BIT = 1
+            MODE_8BIT = 0,
+            MODE_16BIT = 1
         }
 
         /// <summary>
@@ -189,25 +190,6 @@ namespace FliSharp
         #endregion // enums
 
         //
-        #region Types
-        //
-
-        /// <summary>
-        /// Exception thrown when an API call returns non-zero, see status for details
-        /// </summary>
-        public class FliException : Exception
-        {
-            public int status;
-
-            public FliException(int status)
-            {
-                this.status = status;
-            }
-        }
-
-        #endregion
-
-        //
         #region APIs
         //
         // private APIs refer to entry points exposed by libfli.dll, the  refers to the fact that it Returns a status Code
@@ -220,7 +202,7 @@ namespace FliSharp
         {
             int status = FLIOpen(out dev, name, domain);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -229,7 +211,7 @@ namespace FliSharp
         {
             int status = FLISetDebugLevel(host, level);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -238,7 +220,7 @@ namespace FliSharp
         {
             int status = FLIClose(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -248,7 +230,7 @@ namespace FliSharp
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetLibVersion(sb, sb.MaxCapacity);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
             ver = sb.ToString();
         }
 
@@ -259,7 +241,7 @@ namespace FliSharp
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetModel(dev, sb, sb.MaxCapacity);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
             model = sb.ToString();
         }
 
@@ -269,7 +251,7 @@ namespace FliSharp
         {
             int status = FLIGetPixelSize(dev, out pixel_x, out pixel_y);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -278,7 +260,7 @@ namespace FliSharp
         {
             int status = FLIGetHWRevision(dev, out hwrev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -287,7 +269,7 @@ namespace FliSharp
         {
             int status = FLIGetFWRevision(dev, out fwrev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -296,7 +278,7 @@ namespace FliSharp
         {
             int status = FLIGetArrayArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -305,7 +287,7 @@ namespace FliSharp
         {
             int status = FLIGetVisibleArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -314,7 +296,7 @@ namespace FliSharp
         {
             int status = FLISetExposureTime(dev, exptime);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -323,7 +305,7 @@ namespace FliSharp
         {
             int status = FLISetImageArea(dev, ul_x, ul_y, lr_x, lr_y);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -332,7 +314,7 @@ namespace FliSharp
         {
             int status = FLISetHBin(dev, hbin);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -341,7 +323,7 @@ namespace FliSharp
         {
             int status = FLISetVBin(dev, vbin);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -350,7 +332,7 @@ namespace FliSharp
         {
             int status = FLISetFrameType(dev, frametype);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -359,7 +341,7 @@ namespace FliSharp
         {
             int status = FLICancelExposure(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -368,7 +350,7 @@ namespace FliSharp
         {
             int status = FLIGetExposureStatus(dev, out timeleft);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -377,7 +359,7 @@ namespace FliSharp
         {
             int status = FLISetTemperature(dev, temperature);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -386,7 +368,7 @@ namespace FliSharp
         {
             int status = FLIGetTemperature(dev, out temperature);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -395,7 +377,7 @@ namespace FliSharp
         {
             int status = FLIGetCoolerPower(dev, out power);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -409,7 +391,7 @@ namespace FliSharp
             {
                 int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(byte));
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -425,7 +407,7 @@ namespace FliSharp
             {
                 int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(ushort));
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -439,7 +421,7 @@ namespace FliSharp
         {
             int status = FLIExposeFrame(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -448,7 +430,7 @@ namespace FliSharp
         {
             int status = FLIFlushRow(dev, rows, repeat);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -457,7 +439,7 @@ namespace FliSharp
         {
             int status = FLISetNFlushes(dev, nflushes);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -466,7 +448,7 @@ namespace FliSharp
         {
             int status = FLISetBitDepth(dev, bitdepth);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -475,7 +457,7 @@ namespace FliSharp
         {
             int status = FLIReadIOPort(dev, out ioportset);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -484,7 +466,7 @@ namespace FliSharp
         {
             int status = FLIWriteIOPort(dev, ioportset);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -493,7 +475,7 @@ namespace FliSharp
         {
             int status = FLIConfigureIOPort(dev, ioportset);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -502,7 +484,7 @@ namespace FliSharp
         {
             int status = FLILockDevice(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -511,7 +493,7 @@ namespace FliSharp
         {
             int status = FLIUnlockDevice(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -520,7 +502,7 @@ namespace FliSharp
         {
             int status = FLIControlShutter(dev, shutter);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -529,7 +511,7 @@ namespace FliSharp
         {
             int status = FLIControlBackgroundFlush(dev, bgflush);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -538,7 +520,7 @@ namespace FliSharp
         {
             int status = FLISetDAC(dev, dacset);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         /// <summary>
@@ -553,7 +535,7 @@ namespace FliSharp
         {
             int status = FLIList(domain, out names);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 /*
         [DllImport("libfli.dll")]
@@ -562,7 +544,7 @@ namespace FliSharp
         {
             int status = FLIFreeList(names);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 */
 
@@ -573,7 +555,7 @@ namespace FliSharp
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetFilterName(dev, filter, sb, sb.MaxCapacity);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
             name = sb.ToString();
         }
 
@@ -583,7 +565,7 @@ namespace FliSharp
         {
             int status = FLISetActiveWheel(dev, wheel);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -592,7 +574,7 @@ namespace FliSharp
         {
             int status = FLIGetActiveWheel(dev, out wheel);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
 
@@ -602,7 +584,7 @@ namespace FliSharp
         {
             int status = FLISetFilterPos(dev, filter);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -611,7 +593,7 @@ namespace FliSharp
         {
             int status = FLIGetFilterPos(dev, out filter);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -620,7 +602,7 @@ namespace FliSharp
         {
             int status = FLIGetFilterCount(dev, out filter);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
 
@@ -630,7 +612,7 @@ namespace FliSharp
         {
             int status = FLIStepMotor(dev, steps);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -639,7 +621,7 @@ namespace FliSharp
         {
             int status = FLIStepMotorAsync(dev, steps);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -648,7 +630,7 @@ namespace FliSharp
         {
             int status = FLIGetStepperPosition(dev, out position);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -657,7 +639,7 @@ namespace FliSharp
         {
             int status = FLIGetStepsRemaining(dev, out steps);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -666,7 +648,7 @@ namespace FliSharp
         {
             int status = FLIHomeFocuser(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -675,7 +657,7 @@ namespace FliSharp
         {
             int status = FLICreateList(domain);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -684,7 +666,7 @@ namespace FliSharp
         {
             int status = FLIDeleteList();
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -695,7 +677,7 @@ namespace FliSharp
             StringBuilder sbName = new StringBuilder(MAX_STRING_LEN);
             int status = FLIListFirst(out domain, sbFilename, sbFilename.MaxCapacity, sbName, sbName.MaxCapacity);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
             filename = sbFilename.ToString();
             name = sbName.ToString();
         }
@@ -708,7 +690,7 @@ namespace FliSharp
             StringBuilder sbName = new StringBuilder(MAX_STRING_LEN);
             int status = FLIListNext(out domain, sbFilename, sbFilename.MaxCapacity, sbName, sbName.MaxCapacity);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
             filename = sbFilename.ToString();
             name = sbName.ToString();
         }
@@ -719,7 +701,7 @@ namespace FliSharp
         {
             int status = FLIReadTemperature(dev, channel, out temperature);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -728,7 +710,7 @@ namespace FliSharp
         {
             int status = FLIGetFocuserExtent(dev, out extent);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         /// <summary>
@@ -750,7 +732,7 @@ namespace FliSharp
             {
                 int status = FLIUsbBulkIO(dev, ep, BufPtr, out len);
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -764,7 +746,7 @@ namespace FliSharp
         {
             int Status = FLIGetDeviceStatus(dev, out status);
             if (0 != Status)
-                throw new FliException(Status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -774,7 +756,7 @@ namespace FliSharp
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetCameraModeString(dev, mode_index, sb, sb.MaxCapacity);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
             mode_string = sb.ToString();
         }
 
@@ -784,7 +766,7 @@ namespace FliSharp
         {
             int status = FLIGetCameraMode(dev, out mode_index);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -793,7 +775,7 @@ namespace FliSharp
         {
             int status = FLISetCameraMode(dev, mode_index);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -802,7 +784,7 @@ namespace FliSharp
         {
             int status = FLIHomeDevice(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -817,7 +799,7 @@ namespace FliSharp
             {
                 int status = FLIGrabFrame(dev, BuffPtr, buff.Length * sizeof(byte), out bytesgrabbed);
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -836,7 +818,7 @@ namespace FliSharp
             {
                 int status = FLIGrabFrame(dev, BuffPtr, buff.Length * sizeof(ushort), out bytesgrabbed);
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -852,7 +834,7 @@ namespace FliSharp
         {
             int status = FLISetTDI(dev, tdi_rate, flags);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -866,7 +848,7 @@ namespace FliSharp
             {
                 int status = FLIGrabVideoFrame(dev, BuffPtr, buff.Length * sizeof(byte));
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -882,7 +864,7 @@ namespace FliSharp
             {
                 int status = FLIGrabVideoFrame(dev, BuffPtr, buff.Length * sizeof(ushort));
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -896,7 +878,7 @@ namespace FliSharp
         {
             int status = FLIStopVideoMode(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -905,7 +887,7 @@ namespace FliSharp
         {
             int status = FLIStartVideoMode(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -915,7 +897,7 @@ namespace FliSharp
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetSerialString(dev, sb, sb.MaxCapacity);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
             serial = sb.ToString();
         }
 
@@ -925,7 +907,7 @@ namespace FliSharp
         {
             int status = FLIEndExposure(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -934,7 +916,7 @@ namespace FliSharp
         {
             int status = FLITriggerExposure(dev);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -943,7 +925,7 @@ namespace FliSharp
         {
             int status = FLISetFanSpeed(dev, fan_speed);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -952,7 +934,7 @@ namespace FliSharp
         {
             int status = FLISetVerticalTableEntry(dev, index, height, bin, mode);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -961,7 +943,7 @@ namespace FliSharp
         {
             int status = FLIGetVerticalTableEntry(dev, index, out height, out bin, out mode);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -970,7 +952,7 @@ namespace FliSharp
         {
             int status = FLIGetReadoutDimensions(dev, out width, out hoffset, out hbin, out height, out voffset, out vbin);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -979,7 +961,7 @@ namespace FliSharp
         {
             int status = FLIEnableVerticalTable(dev, width, offset, flags);
             if (0 != status)
-                throw new FliException(status);
+                throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
@@ -993,7 +975,7 @@ namespace FliSharp
             {
                 int status = FLIReadUserEEPROM(dev, loc, address, rbuf.Length, BuffPtr);
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
@@ -1012,7 +994,7 @@ namespace FliSharp
             {
                 int status = FLIWriteUserEEPROM(dev, loc, address, wbuf.Length, BuffPtr);
                 if (0 != status)
-                    throw new FliException(status);
+                    throw new Win32Exception(-status);
             }
             finally
             {
