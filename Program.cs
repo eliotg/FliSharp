@@ -10,7 +10,9 @@ namespace FliSharp
     {
         static void Main(string[] args)
         {
-            
+            string ver;
+            FLI.GetLibVersion(out ver);
+            Console.WriteLine(ver);
         }
 
     } // class
