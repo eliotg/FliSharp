@@ -35,6 +35,9 @@ namespace FliSharp
             FLI.GetSerialString(dev, out serial);
             double ccdtemp;
             FLI.GetTemperature(dev, out ccdtemp);
+            Console.WriteLine("CCD temp: " + ccdtemp);
+
+            FLI.SetFanSpeed(dev, FLI.FAN_SPEED.ON);
 
             string[] names;
             // FLI.List(FLI.DOMAIN.CAMERA | FLI.DOMAIN.USB, out names);

@@ -920,8 +920,8 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetFanSpeed(IntPtr dev, int fan_speed);
-        public static void SetFanSpeed(IntPtr dev, int fan_speed)
+        private static extern int FLISetFanSpeed(IntPtr dev, FAN_SPEED fan_speed);
+        public static void SetFanSpeed(IntPtr dev, FAN_SPEED fan_speed)
         {
             int status = FLISetFanSpeed(dev, fan_speed);
             if (0 != status)
