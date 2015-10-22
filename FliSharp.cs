@@ -5,13 +5,21 @@ using System.Text; // for StringBuilder
 
 namespace FliSharp
 {
-    class FLI
+    class FLI : IDisposable
     {
         //
         #region Constants
         //
 
+        /// <summary>
+        /// max string size for all APIs
+        /// </summary>
         public const int MAX_STRING_LEN = 256;
+
+        /// <summary>
+        /// represents a closed device handle (instead of IntPtr.Zero)
+        /// </summary>
+        private const int INVALID_DEVICE = -1;
 
         #endregion
 
@@ -190,20 +198,24 @@ namespace FliSharp
         #endregion // enums
 
         //
-        #region APIs
-        //
-        // private APIs refer to entry points exposed by libfli.dll, the  refers to the fact that it Returns a status Code
-        // public APIs wrap with managed "calling convention" to throw exceptions vs. returning status codes
+        #region Members
         //
 
-        [DllImport("libfli.dll")]
-        private static extern int FLIOpen(out IntPtr dev, string name, DOMAIN domain);
-        public static void Open(out IntPtr dev, string name, DOMAIN domain)
-        {
-            int status = FLIOpen(out dev, name, domain);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
+        /// <summary>
+        /// Stores a handle to the device once it's been opened
+        /// </summary>
+        IntPtr dev = (IntPtr)INVALID_DEVICE;
+        
+        /// <summary>
+        /// for IDisposable pattern
+        /// </summary>
+        bool disposed = false;
+
+        #endregion
+
+        //
+        #region static APIs
+        //
 
         [DllImport("libfli.dll")]
         private static extern int FLISetDebugLevel(string host, DEBUG level);
@@ -215,312 +227,14 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIClose(IntPtr dev);
-        public static void Close(IntPtr dev)
-        {
-            int status = FLIClose(dev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
         private static extern int FLIGetLibVersion(StringBuilder ver, int len);
-        public static void GetLibVersion(out string ver)
+        public static string GetLibVersion()
         {
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetLibVersion(sb, sb.MaxCapacity);
             if (0 != status)
                 throw new Win32Exception(-status);
-            ver = sb.ToString();
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetModel(IntPtr dev, StringBuilder model, int len);
-        public static void GetModel(IntPtr dev, out string model)
-        {
-            StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
-            int status = FLIGetModel(dev, sb, sb.MaxCapacity);
-            if (0 != status)
-                throw new Win32Exception(-status);
-            model = sb.ToString();
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetPixelSize(IntPtr dev, out double pixel_x, out double pixel_y);
-        public static void GetPixelSize(IntPtr dev, out double pixel_x, out double pixel_y)
-        {
-            int status = FLIGetPixelSize(dev, out pixel_x, out pixel_y);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetHWRevision(IntPtr dev, out int hwrev);
-        public static void GetHWRevision(IntPtr dev, out int hwrev)
-        {
-            int status = FLIGetHWRevision(dev, out hwrev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetFWRevision(IntPtr dev, out int fwrev);
-        public static void GetFWRevision(IntPtr dev, out int fwrev)
-        {
-            int status = FLIGetFWRevision(dev, out fwrev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetArrayArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
-        public static void GetArrayArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y)
-        {
-            int status = FLIGetArrayArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetVisibleArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
-        public static void GetVisibleArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y)
-        {
-            int status = FLIGetVisibleArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetExposureTime(IntPtr dev, int exptime);
-        public static void SetExposureTime(IntPtr dev, int exptime)
-        {
-            int status = FLISetExposureTime(dev, exptime);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetImageArea(IntPtr dev, int ul_x, int ul_y, int lr_x, int lr_y);
-        public static void SetImageArea(IntPtr dev, int ul_x, int ul_y, int lr_x, int lr_y)
-        {
-            int status = FLISetImageArea(dev, ul_x, ul_y, lr_x, lr_y);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetHBin(IntPtr dev, int hbin);
-        public static void SetHBin(IntPtr dev, int hbin)
-        {
-            int status = FLISetHBin(dev, hbin);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetVBin(IntPtr dev, int vbin);
-        public static void SetVBin(IntPtr dev, int vbin)
-        {
-            int status = FLISetVBin(dev, vbin);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetFrameType(IntPtr dev, FRAME_TYPE frametype);
-        public static void SetFrameType(IntPtr dev, FRAME_TYPE frametype)
-        {
-            int status = FLISetFrameType(dev, frametype);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLICancelExposure(IntPtr dev);
-        public static void CancelExposure(IntPtr dev)
-        {
-            int status = FLICancelExposure(dev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetExposureStatus(IntPtr dev, out int timeleft);
-        public static void GetExposureStatus(IntPtr dev, out int timeleft)
-        {
-            int status = FLIGetExposureStatus(dev, out timeleft);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetTemperature(IntPtr dev, double temperature);
-        public static void SetTemperature(IntPtr dev, double temperature)
-        {
-            int status = FLISetTemperature(dev, temperature);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetTemperature(IntPtr dev, out double temperature);
-        public static void GetTemperature(IntPtr dev, out double temperature)
-        {
-            int status = FLIGetTemperature(dev, out temperature);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetCoolerPower(IntPtr dev, out double power);
-        public static void GetCoolerPower(IntPtr dev, out double power)
-        {
-            int status = FLIGetCoolerPower(dev, out power);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGrabRow(IntPtr dev, IntPtr buff, int width);
-        public static void GrabRow(IntPtr dev, byte[] buff)
-        {
-            GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
-            IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
-
-            try
-            {
-                int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(byte));
-                if (0 != status)
-                    throw new Win32Exception(-status);
-            }
-            finally
-            {
-                BuffGch.Free();
-            }
-        }
-        public static void GrabRow(IntPtr dev, ushort[] buff)
-        {
-            GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
-            IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
-
-            try
-            {
-                int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(ushort));
-                if (0 != status)
-                    throw new Win32Exception(-status);
-            }
-            finally
-            {
-                BuffGch.Free();
-            }
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIExposeFrame(IntPtr dev);
-        public static void ExposeFrame(IntPtr dev)
-        {
-            int status = FLIExposeFrame(dev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIFlushRow(IntPtr dev, int rows, int repeat);
-        public static void FlushRow(IntPtr dev, int rows, int repeat)
-        {
-            int status = FLIFlushRow(dev, rows, repeat);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetNFlushes(IntPtr dev, int nflushes);
-        public static void SetNFlushes(IntPtr dev, int nflushes)
-        {
-            int status = FLISetNFlushes(dev, nflushes);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetBitDepth(IntPtr dev, BIT_DEPTH bitdepth);
-        public static void SetBitDepth(IntPtr dev, BIT_DEPTH bitdepth)
-        {
-            int status = FLISetBitDepth(dev, bitdepth);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIReadIOPort(IntPtr dev, out int ioportset);
-        public static void ReadIOPort(IntPtr dev, out int ioportset)
-        {
-            int status = FLIReadIOPort(dev, out ioportset);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIWriteIOPort(IntPtr dev, int ioportset);
-        public static void WriteIOPort(IntPtr dev, int ioportset)
-        {
-            int status = FLIWriteIOPort(dev, ioportset);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIConfigureIOPort(IntPtr dev, int ioportset);
-        public static void ConfigureIOPort(IntPtr dev, int ioportset)
-        {
-            int status = FLIConfigureIOPort(dev, ioportset);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLILockDevice(IntPtr dev);
-        public static void LockDevice(IntPtr dev)
-        {
-            int status = FLILockDevice(dev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIUnlockDevice(IntPtr dev);
-        public static void UnlockDevice(IntPtr dev)
-        {
-            int status = FLIUnlockDevice(dev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIControlShutter(IntPtr dev, SHUTTER shutter);
-        public static void ControlShutter(IntPtr dev, SHUTTER shutter)
-        {
-            int status = FLIControlShutter(dev, shutter);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIControlBackgroundFlush(IntPtr dev, BGFLUSH bgflush);
-        public static void ControlBackgroundFlush(IntPtr dev, BGFLUSH bgflush)
-        {
-            int status = FLIControlBackgroundFlush(dev, bgflush);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetDAC(IntPtr dev, uint dacset);
-        public static void SetDAC(IntPtr dev, uint dacset)
-        {
-            int status = FLISetDAC(dev, dacset);
-            if (0 != status)
-                throw new Win32Exception(-status);
+            return sb.ToString();
         }
 
         /// <summary>
@@ -540,116 +254,13 @@ namespace FliSharp
 /*
         [DllImport("libfli.dll")]
         private static extern int FLIFreeList(string[] names);
-        public static void FreeList(string[] names)
+        public void FreeList(string[] names)
         {
             int status = FLIFreeList(names);
             if (0 != status)
                 throw new Win32Exception(-status);
         }
 */
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetFilterName(IntPtr dev, int filter, StringBuilder name, int len);
-        public static void GetFilterName(IntPtr dev, int filter, out string name)
-        {
-            StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
-            int status = FLIGetFilterName(dev, filter, sb, sb.MaxCapacity);
-            if (0 != status)
-                throw new Win32Exception(-status);
-            name = sb.ToString();
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetActiveWheel(IntPtr dev, int wheel);
-        public static void SetActiveWheel(IntPtr dev, int wheel)
-        {
-            int status = FLISetActiveWheel(dev, wheel);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetActiveWheel(IntPtr dev, out int wheel);
-        public static void GetActiveWheel(IntPtr dev, out int wheel)
-        {
-            int status = FLIGetActiveWheel(dev, out wheel);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-
-        [DllImport("libfli.dll")]
-        private static extern int FLISetFilterPos(IntPtr dev, int filter);
-        public static void SetFilterPos(IntPtr dev, int filter)
-        {
-            int status = FLISetFilterPos(dev, filter);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetFilterPos(IntPtr dev, out int filter);
-        public static void GetFilterPos(IntPtr dev, out int filter)
-        {
-            int status = FLIGetFilterPos(dev, out filter);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetFilterCount(IntPtr dev, out int filter);
-        public static void GetFilterCount(IntPtr dev, out int filter)
-        {
-            int status = FLIGetFilterCount(dev, out filter);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIStepMotor(IntPtr dev, int steps);
-        public static void StepMotor(IntPtr dev, int steps)
-        {
-            int status = FLIStepMotor(dev, steps);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIStepMotorAsync(IntPtr dev, int steps);
-        public static void StepMotorAsync(IntPtr dev, int steps)
-        {
-            int status = FLIStepMotorAsync(dev, steps);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetStepperPosition(IntPtr dev, out int position);
-        public static void GetStepperPosition(IntPtr dev, out int position)
-        {
-            int status = FLIGetStepperPosition(dev, out position);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIGetStepsRemaining(IntPtr dev, out int steps);
-        public static void GetStepsRemaining(IntPtr dev, out int steps)
-        {
-            int status = FLIGetStepsRemaining(dev, out steps);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-
-        [DllImport("libfli.dll")]
-        private static extern int FLIHomeFocuser(IntPtr dev);
-        public static void HomeFocuser(IntPtr dev)
-        {
-            int status = FLIHomeFocuser(dev);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
 
         [DllImport("libfli.dll")]
         private static extern int FLICreateList(DOMAIN domain);
@@ -695,22 +306,495 @@ namespace FliSharp
             name = sbName.ToString();
         }
 
+        #endregion
+
+        //
+        #region device APIs
+        //
+
         [DllImport("libfli.dll")]
-        private static extern int FLIReadTemperature(IntPtr dev, CHANNEL channel, out double temperature);
-        public static void ReadTemperature(IntPtr dev, CHANNEL channel, out double temperature)
+        private static extern int FLIOpen(out IntPtr dev, string name, DOMAIN domain);
+        public FLI(string name, DOMAIN domain)
         {
-            int status = FLIReadTemperature(dev, channel, out temperature);
+            int status = FLIOpen(out dev, name, domain);
             if (0 != status)
                 throw new Win32Exception(-status);
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetFocuserExtent(IntPtr dev, out int extent);
-        public static void GetFocuserExtent(IntPtr dev, out int extent)
+        private static extern int FLIClose(IntPtr dev);
+        public void Close()
         {
+            // don't do anything if there's nothing to do
+            if ((IntPtr)INVALID_DEVICE == dev)
+                return;
+
+            int status = FLIClose(dev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            // "null" out the handle
+            dev = (IntPtr)INVALID_DEVICE;
+        }
+
+        ~FLI()
+        {
+            Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (disposing)
+            {
+                // this space intentionally left blank
+            }
+
+            Close();
+            disposed = true;
+        }
+        
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetModel(IntPtr dev, StringBuilder model, int len);
+        public string GetModel()
+        {
+            StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
+            int status = FLIGetModel(dev, sb, sb.MaxCapacity);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return sb.ToString();
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetPixelSize(IntPtr dev, out double pixel_x, out double pixel_y);
+        public void GetPixelSize(out double pixel_x, out double pixel_y)
+        {
+            int status = FLIGetPixelSize(dev, out pixel_x, out pixel_y);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetHWRevision(IntPtr dev, out int hwrev);
+        public int GetHWRevision()
+        {
+            int hwrev;
+            int status = FLIGetHWRevision(dev, out hwrev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return hwrev;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetFWRevision(IntPtr dev, out int fwrev);
+        public int GetFWRevision()
+        {
+            int fwrev;
+            int status = FLIGetFWRevision(dev, out fwrev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return fwrev;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetArrayArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
+        public void GetArrayArea(out int ul_x, out int ul_y, out int lr_x, out int lr_y)
+        {
+            int status = FLIGetArrayArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetVisibleArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
+        public void GetVisibleArea(out int ul_x, out int ul_y, out int lr_x, out int lr_y)
+        {
+            int status = FLIGetVisibleArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetExposureTime(IntPtr dev, int exptime);
+        public void SetExposureTime(int exptime)
+        {
+            int status = FLISetExposureTime(dev, exptime);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetImageArea(IntPtr dev, int ul_x, int ul_y, int lr_x, int lr_y);
+        public void SetImageArea(int ul_x, int ul_y, int lr_x, int lr_y)
+        {
+            int status = FLISetImageArea(dev, ul_x, ul_y, lr_x, lr_y);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetHBin(IntPtr dev, int hbin);
+        public void SetHBin(int hbin)
+        {
+            int status = FLISetHBin(dev, hbin);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetVBin(IntPtr dev, int vbin);
+        public void SetVBin(int vbin)
+        {
+            int status = FLISetVBin(dev, vbin);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetFrameType(IntPtr dev, FRAME_TYPE frametype);
+        public void SetFrameType(FRAME_TYPE frametype)
+        {
+            int status = FLISetFrameType(dev, frametype);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLICancelExposure(IntPtr dev);
+        public void CancelExposure()
+        {
+            int status = FLICancelExposure(dev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetExposureStatus(IntPtr dev, out int timeleft);
+        public int GetExposureStatus()
+        {
+            int timeleft;
+            int status = FLIGetExposureStatus(dev, out timeleft);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return timeleft;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetTemperature(IntPtr dev, double temperature);
+        public void SetTemperature(double temperature)
+        {
+            int status = FLISetTemperature(dev, temperature);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetTemperature(IntPtr dev, out double temperature);
+        public double GetTemperature()
+        {
+            double temperature;
+            int status = FLIGetTemperature(dev, out temperature);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return temperature;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetCoolerPower(IntPtr dev, out double power);
+        public double GetCoolerPower()
+        {
+            double power;
+            int status = FLIGetCoolerPower(dev, out power);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return power;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGrabRow(IntPtr dev, IntPtr buff, int width);
+        public void GrabRow(byte[] buff)
+        {
+            GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
+            IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
+
+            try
+            {
+                int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(byte));
+                if (0 != status)
+                    throw new Win32Exception(-status);
+            }
+            finally
+            {
+                BuffGch.Free();
+            }
+        }
+        public void GrabRow(ushort[] buff)
+        {
+            GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
+            IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
+
+            try
+            {
+                int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(ushort));
+                if (0 != status)
+                    throw new Win32Exception(-status);
+            }
+            finally
+            {
+                BuffGch.Free();
+            }
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIExposeFrame(IntPtr dev);
+        public void ExposeFrame()
+        {
+            int status = FLIExposeFrame(dev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIFlushRow(IntPtr dev, int rows, int repeat);
+        public void FlushRow(int rows, int repeat)
+        {
+            int status = FLIFlushRow(dev, rows, repeat);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetNFlushes(IntPtr dev, int nflushes);
+        public void SetNFlushes(int nflushes)
+        {
+            int status = FLISetNFlushes(dev, nflushes);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetBitDepth(IntPtr dev, BIT_DEPTH bitdepth);
+        public void SetBitDepth(BIT_DEPTH bitdepth)
+        {
+            int status = FLISetBitDepth(dev, bitdepth);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIReadIOPort(IntPtr dev, out int ioportset);
+        public int ReadIOPort()
+        {
+            int ioportset;
+            int status = FLIReadIOPort(dev, out ioportset);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return ioportset;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIWriteIOPort(IntPtr dev, int ioportset);
+        public void WriteIOPort(int ioportset)
+        {
+            int status = FLIWriteIOPort(dev, ioportset);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIConfigureIOPort(IntPtr dev, int ioportset);
+        public void ConfigureIOPort(int ioportset)
+        {
+            int status = FLIConfigureIOPort(dev, ioportset);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLILockDevice(IntPtr dev);
+        public void LockDevice()
+        {
+            int status = FLILockDevice(dev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIUnlockDevice(IntPtr dev);
+        public void UnlockDevice()
+        {
+            int status = FLIUnlockDevice(dev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIControlShutter(IntPtr dev, SHUTTER shutter);
+        public void ControlShutter(SHUTTER shutter)
+        {
+            int status = FLIControlShutter(dev, shutter);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIControlBackgroundFlush(IntPtr dev, BGFLUSH bgflush);
+        public void ControlBackgroundFlush(BGFLUSH bgflush)
+        {
+            int status = FLIControlBackgroundFlush(dev, bgflush);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetDAC(IntPtr dev, uint dacset);
+        public void SetDAC(uint dacset)
+        {
+            int status = FLISetDAC(dev, dacset);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetFilterName(IntPtr dev, int filter, StringBuilder name, int len);
+        public string GetFilterName(int filter)
+        {
+            StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
+            int status = FLIGetFilterName(dev, filter, sb, sb.MaxCapacity);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return sb.ToString();
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetActiveWheel(IntPtr dev, int wheel);
+        public void SetActiveWheel(int wheel)
+        {
+            int status = FLISetActiveWheel(dev, wheel);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetActiveWheel(IntPtr dev, out int wheel);
+        public int GetActiveWheel()
+        {
+            int wheel;
+            int status = FLIGetActiveWheel(dev, out wheel);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return wheel;
+        }
+
+
+        [DllImport("libfli.dll")]
+        private static extern int FLISetFilterPos(IntPtr dev, int filter);
+        public void SetFilterPos(int filter)
+        {
+            int status = FLISetFilterPos(dev, filter);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetFilterPos(IntPtr dev, out int filter);
+        public int GetFilterPos()
+        {
+            int filter;
+            int status = FLIGetFilterPos(dev, out filter);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return filter;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetFilterCount(IntPtr dev, out int filter);
+        public int GetFilterCount()
+        {
+            int filter;
+            int status = FLIGetFilterCount(dev, out filter);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return filter;
+        }
+
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIStepMotor(IntPtr dev, int steps);
+        public void StepMotor(int steps)
+        {
+            int status = FLIStepMotor(dev, steps);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIStepMotorAsync(IntPtr dev, int steps);
+        public void StepMotorAsync(int steps)
+        {
+            int status = FLIStepMotorAsync(dev, steps);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetStepperPosition(IntPtr dev, out int position);
+        public int GetStepperPosition()
+        {
+            int position;
+            int status = FLIGetStepperPosition(dev, out position);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return position;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetStepsRemaining(IntPtr dev, out int steps);
+        public int GetStepsRemaining()
+        {
+            int steps;
+            int status = FLIGetStepsRemaining(dev, out steps);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return steps;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIHomeFocuser(IntPtr dev);
+        public void HomeFocuser()
+        {
+            int status = FLIHomeFocuser(dev);
+            if (0 != status)
+                throw new Win32Exception(-status);
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIReadTemperature(IntPtr dev, CHANNEL channel, out double temperature);
+        public double ReadTemperature(CHANNEL channel)
+        {
+            double temperature;
+            int status = FLIReadTemperature(dev, channel, out temperature);
+            if (0 != status)
+                throw new Win32Exception(-status);
+            return temperature;
+        }
+
+        [DllImport("libfli.dll")]
+        private static extern int FLIGetFocuserExtent(IntPtr dev, out int extent);
+        public int GetFocuserExtent()
+        {
+            int extent;
             int status = FLIGetFocuserExtent(dev, out extent);
             if (0 != status)
                 throw new Win32Exception(-status);
+            return extent;
         }
 
         /// <summary>
@@ -723,8 +807,9 @@ namespace FliSharp
         /// <returns></returns>
         [DllImport("libfli.dll")]
         private static extern int FLIUsbBulkIO(IntPtr dev, int ep, IntPtr buf, out int len);
-        public static void UsbBulkIO(IntPtr dev, int ep, byte[] buf, out int len)
+        public int UsbBulkIO(int ep, byte[] buf)
         {
+            int len;
             GCHandle BufGch = GCHandle.Alloc(buf, GCHandleType.Pinned);
             IntPtr BufPtr = BufGch.AddrOfPinnedObject();
 
@@ -738,40 +823,45 @@ namespace FliSharp
             {
                 BufGch.Free();
             }
+            return len;
         }
 
         [DllImport("libfli.dll")]
         private static extern int FLIGetDeviceStatus(IntPtr dev, out int status);
-        public static void GetDeviceStatus(IntPtr dev, out int status)
+        public int GetDeviceStatus()
         {
+            int status;
             int Status = FLIGetDeviceStatus(dev, out status);
             if (0 != Status)
-                throw new Win32Exception(-status);
+                throw new Win32Exception(-Status);
+            return status;
         }
 
         [DllImport("libfli.dll")]
         private static extern int FLIGetCameraModeString(IntPtr dev, int mode_index, StringBuilder mode_string, int siz);
-        public static void GetCameraModeString(IntPtr dev, int mode_index, out string mode_string)
+        public string GetCameraModeString(int mode_index)
         {
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetCameraModeString(dev, mode_index, sb, sb.MaxCapacity);
             if (0 != status)
                 throw new Win32Exception(-status);
-            mode_string = sb.ToString();
+            return sb.ToString();
         }
 
         [DllImport("libfli.dll")]
         private static extern int FLIGetCameraMode(IntPtr dev, out int mode_index);
-        public static void GetCameraMode(IntPtr dev, out int mode_index)
+        public int GetCameraMode()
         {
+            int mode_index;
             int status = FLIGetCameraMode(dev, out mode_index);
             if (0 != status)
                 throw new Win32Exception(-status);
+            return mode_index;
         }
 
         [DllImport("libfli.dll")]
         private static extern int FLISetCameraMode(IntPtr dev, int mode_index);
-        public static void SetCameraMode(IntPtr dev, int mode_index)
+        public void SetCameraMode(int mode_index)
         {
             int status = FLISetCameraMode(dev, mode_index);
             if (0 != status)
@@ -780,7 +870,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIHomeDevice(IntPtr dev);
-        public static void HomeDevice(IntPtr dev)
+        public void HomeDevice()
         {
             int status = FLIHomeDevice(dev);
             if (0 != status)
@@ -789,7 +879,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIGrabFrame(IntPtr dev, IntPtr buff, int buffsize, out int bytesgrabbed);
-        public static void GrabFrame(IntPtr dev, byte[] buff)
+        public void GrabFrame(byte[,] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
@@ -806,9 +896,9 @@ namespace FliSharp
                 BuffGch.Free();
             }
             if (buff.Length * sizeof(byte) != bytesgrabbed)
-                throw new ArgumentException("bytesgrabbed != sizeof(buff)");
+                throw new InvalidOperationException("bytesgrabbed != sizeof(buff)");
         }
-        public static void GrabFrame(IntPtr dev, ushort[] buff)
+        public void GrabFrame(ushort[,] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
@@ -825,12 +915,12 @@ namespace FliSharp
                 BuffGch.Free();
             }
             if (buff.Length * sizeof(ushort) != bytesgrabbed)
-                throw new ArgumentException("bytesgrabbed != sizeof(buff)");
+                throw new InvalidOperationException("bytesgrabbed != sizeof(buff)");
         }
 
         [DllImport("libfli.dll")]
         private static extern int FLISetTDI(IntPtr dev, int tdi_rate, int flags);
-        public static void SetTDI(IntPtr dev, int tdi_rate, int flags)
+        public void SetTDI(int tdi_rate, int flags)
         {
             int status = FLISetTDI(dev, tdi_rate, flags);
             if (0 != status)
@@ -839,7 +929,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIGrabVideoFrame(IntPtr dev, IntPtr buff, int size);
-        public static void GrabVideoFrame(IntPtr dev, byte[] buff)
+        public void GrabVideoFrame(byte[,] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
@@ -855,7 +945,7 @@ namespace FliSharp
                 BuffGch.Free();
             }
         }
-        public static void GrabVideoFrame(IntPtr dev, ushort[] buff)
+        public void GrabVideoFrame(IntPtr dev, ushort[,] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
@@ -874,7 +964,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIStopVideoMode(IntPtr dev);
-        public static void StopVideoMode(IntPtr dev)
+        public void StopVideoMode()
         {
             int status = FLIStopVideoMode(dev);
             if (0 != status)
@@ -883,7 +973,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIStartVideoMode(IntPtr dev);
-        public static void StartVideoMode(IntPtr dev)
+        public void StartVideoMode()
         {
             int status = FLIStartVideoMode(dev);
             if (0 != status)
@@ -892,18 +982,18 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIGetSerialString(IntPtr dev, StringBuilder serial, int len);
-        public static void GetSerialString(IntPtr dev, out string serial)
+        public string GetSerialString()
         {
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
             int status = FLIGetSerialString(dev, sb, sb.MaxCapacity);
             if (0 != status)
                 throw new Win32Exception(-status);
-            serial = sb.ToString();
+            return sb.ToString();
         }
 
         [DllImport("libfli.dll")]
         private static extern int FLIEndExposure(IntPtr dev);
-        public static void EndExposure(IntPtr dev)
+        public void EndExposure()
         {
             int status = FLIEndExposure(dev);
             if (0 != status)
@@ -912,7 +1002,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLITriggerExposure(IntPtr dev);
-        public static void TriggerExposure(IntPtr dev)
+        public void TriggerExposure()
         {
             int status = FLITriggerExposure(dev);
             if (0 != status)
@@ -921,7 +1011,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLISetFanSpeed(IntPtr dev, FAN_SPEED fan_speed);
-        public static void SetFanSpeed(IntPtr dev, FAN_SPEED fan_speed)
+        public void SetFanSpeed(FAN_SPEED fan_speed)
         {
             int status = FLISetFanSpeed(dev, fan_speed);
             if (0 != status)
@@ -930,7 +1020,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLISetVerticalTableEntry(IntPtr dev, int index, int height, int bin, int mode);
-        public static void SetVerticalTableEntry(IntPtr dev, int index, int height, int bin, int mode)
+        public void SetVerticalTableEntry(int index, int height, int bin, int mode)
         {
             int status = FLISetVerticalTableEntry(dev, index, height, bin, mode);
             if (0 != status)
@@ -939,7 +1029,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIGetVerticalTableEntry(IntPtr dev, int index, out int height, out int bin, out int mode);
-        public static void GetVerticalTableEntry(IntPtr dev, int index, out int height, out int bin, out int mode)
+        public void GetVerticalTableEntry(int index, out int height, out int bin, out int mode)
         {
             int status = FLIGetVerticalTableEntry(dev, index, out height, out bin, out mode);
             if (0 != status)
@@ -948,7 +1038,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIGetReadoutDimensions(IntPtr dev, out int width, out int hoffset, out int hbin, out int height, out int voffset, out int vbin);
-        public static void GetReadoutDimensions(IntPtr dev, out int width, out int hoffset, out int hbin, out int height, out int voffset, out int vbin)
+        public void GetReadoutDimensions(out int width, out int hoffset, out int hbin, out int height, out int voffset, out int vbin)
         {
             int status = FLIGetReadoutDimensions(dev, out width, out hoffset, out hbin, out height, out voffset, out vbin);
             if (0 != status)
@@ -957,7 +1047,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIEnableVerticalTable(IntPtr dev, int width, int offset, int flags);
-        public static void EnableVerticalTable(IntPtr dev, int width, int offset, int flags)
+        public void EnableVerticalTable(int width, int offset, int flags)
         {
             int status = FLIEnableVerticalTable(dev, width, offset, flags);
             if (0 != status)
@@ -966,7 +1056,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIReadUserEEPROM(IntPtr dev, int loc, int address, int length, IntPtr rbuf);
-        public static void ReadUserEEPROM(IntPtr dev, int loc, int address, byte[] rbuf)
+        public void ReadUserEEPROM(int loc, int address, byte[] rbuf)
         {
             GCHandle BuffGch = GCHandle.Alloc(rbuf, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
@@ -985,7 +1075,7 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIWriteUserEEPROM(IntPtr dev, int loc, int address, int length, IntPtr wbuf);
-        public static void WriteUserEEPROM(IntPtr dev, int loc, int address, byte[] wbuf)
+        public void WriteUserEEPROM(int loc, int address, byte[] wbuf)
         {
             GCHandle BuffGch = GCHandle.Alloc(wbuf, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
