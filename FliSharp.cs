@@ -164,6 +164,39 @@ namespace FliSharp
 
         /// <summary>
         /// Status settings
+        /// 
+        /// Sequence of statuses during exposure
+        /// ------------------------------------
+        /// Status = -2147483584 = 80000040
+        /// ExposeFrame()...
+        /// Status = 226 = E2
+        /// Status = 226 = E2
+        /// Status = 226 = E2
+        /// Status = 226 = E2
+        /// Status = 226 = E2
+        /// Status = 226 = E2
+        /// Status = 227 = E3
+        /// Status = 227 = E3
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483581 = 80000043
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483581 = 80000043
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483645 = 80000003
+        /// Status = -2147483581 = 80000043
+        /// Status = -2147483584 = 80000040
+        /// Status = -2147483584 = 80000040
+        /// Status = -2147483584 = 80000040
         /// </summary>
         [Flags]
         public enum STATUS : int
@@ -310,6 +343,13 @@ namespace FliSharp
             filename = sbFilename.ToString();
             name = sbName.ToString();
         }
+
+        public static bool IsGrabFrameReady(STATUS status)
+        {
+            return (STATUS.CAMERA_DATA_READY == (status & STATUS.CAMERA_DATA_READY)) && 
+                   (STATUS.CAMERA_STATUS_IDLE == (status & STATUS.CAMERA_STATUS_MASK));
+        }
+
 
         #endregion
 
@@ -802,25 +842,17 @@ namespace FliSharp
             return extent;
         }
 
-        /// <summary>
-        /// TODO: No docs on this function, a bit unclear what it's supposed to be doing
-        /// </summary>
-        /// <param name="dev"></param>
-        /// <param name="ep"></param>
-        /// <param name="buf"></param>
-        /// <param name="len"></param>
-        /// <returns></returns>
         [DllImport("libfli.dll")]
-        private static extern int FLIUsbBulkIO(IntPtr dev, int ep, IntPtr buf, out int len);
-        public int UsbBulkIO(int ep, byte[] buf)
+        private static extern int FLIUsbBulkIO(IntPtr dev, int ep, IntPtr buf, ref int len);
+        private int UsbBulkIO(int ep, byte[] buf)
         {
-            int len;
+            int len = buf.Length;
             GCHandle BufGch = GCHandle.Alloc(buf, GCHandleType.Pinned);
             IntPtr BufPtr = BufGch.AddrOfPinnedObject();
 
             try
             {
-                int status = FLIUsbBulkIO(dev, ep, BufPtr, out len);
+                int status = FLIUsbBulkIO(dev, ep, BufPtr, ref len);
                 if (0 != status)
                     throw new Win32Exception(-status);
             }
@@ -830,16 +862,26 @@ namespace FliSharp
             }
             return len;
         }
+        public int UsbBulkIORead(byte[] buf)
+        {
+            // from reading debug log, 0x81 is the opcode for reading
+            return UsbBulkIO(0x81, buf);
+        }
+        public void UsbBulkIOWrite(byte[] buf)
+        {
+            // from reading debug log, 0x01 is the opcode for writing
+            UsbBulkIO(0x01, buf);
+        }
 
         [DllImport("libfli.dll")]
         private static extern int FLIGetDeviceStatus(IntPtr dev, out int status);
-        public int GetDeviceStatus()
+        public STATUS GetDeviceStatus()
         {
             int status;
             int Status = FLIGetDeviceStatus(dev, out status);
             if (0 != Status)
                 throw new Win32Exception(-Status);
-            return status;
+            return (STATUS)status;
         }
 
         [DllImport("libfli.dll")]
