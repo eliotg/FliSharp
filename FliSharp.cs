@@ -17,6 +17,11 @@ namespace FliSharp
         public const int MAX_STRING_LEN = 256;
 
         /// <summary>
+        /// used to turn "off" the CCD cooler
+        /// </summary>
+        public const double COOLER_MAX_TEMP = 45;
+
+        /// <summary>
         /// represents a closed device handle (instead of IntPtr.Zero)
         /// </summary>
         private const int INVALID_DEVICE = -1;

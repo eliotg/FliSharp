@@ -27,7 +27,8 @@ namespace FliSharp
                 double ccdtemp = cam.GetTemperature();
                 Console.WriteLine("CCD temp: " + ccdtemp);
 
-                cam.SetFanSpeed(FLI.FAN_SPEED.ON);
+                cam.SetFanSpeed(FLI.FAN_SPEED.OFF);
+                cam.SetTemperature(FLI.COOLER_MAX_TEMP);
 
                 string[] names;
                 // FLI.List(FLI.DOMAIN.CAMERA | FLI.DOMAIN.USB, out names);
