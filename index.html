@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="FliSharp : .Net wrapper for FLI SDK">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>FliSharp</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/eliotg/FliSharp">View on GitHub</a>
+
+          <h1 id="project_title">FliSharp</h1>
+          <h2 id="project_tagline">.Net wrapper for FLI SDK</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/eliotg/FliSharp/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/eliotg/FliSharp/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>FLISharp is an unofficial C# wrapper library for Finger Lake Instrument's (FLI) software development kit (SDK).  They've built a great SDK and C# has great facilities for wrapping C code and DLLs, and here we combine them both for your convenience and astronomical pleasure!</p>
+
+<h1>
+<a id="contents" class="anchor" href="#contents" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contents</h1>
+
+<p>There are two primary pieces of useful content in this repository.</p>
+
+<h3>
+<a id="flisharpcs" class="anchor" href="#flisharpcs" aria-hidden="true"><span class="octicon octicon-link"></span></a>FliSharp.cs</h3>
+
+<p>This file contains all the wrapping code to interface with LibFli.dll.  It's broken into five parts: constants, enums, members, static APIs, and device APIs.  Device APIs are those that require a device handle (which this class wraps into an object instance), compared with static APIs that don't.  With this file and <a href="http://www.flicamera.com/downloads/FLI_SDK_Documentation.pdf">FLI_SDK_Documentation.pdf</a>, one should easily be able to understand what's happening on both the software and camera level.</p>
+
+<h3>
+<a id="programcs" class="anchor" href="#programcs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Program.cs</h3>
+
+<p>This is largely example code in the form of a test program.  </p>
+
+<h3>
+<a id="project-files" class="anchor" href="#project-files" aria-hidden="true"><span class="octicon octicon-link"></span></a>Project files</h3>
+
+<p>You'll also find project and other ancillary files to get you started building using Visual Studio instantly!</p>
+
+<h1>
+<a id="status" class="anchor" href="#status" aria-hidden="true"><span class="octicon octicon-link"></span></a>Status</h1>
+
+<p>The full FLI SDK has not been exhaustively exposed, but most things that most people would want to do should be there.  If not, it should be easy enough to follow the pattern and create whatever is needed.  Testing thus far has only been against a PL09000.  Any other cameras made available to the project owner will happily be tested for compatibility.</p>
+
+<h1>
+<a id="thanks" class="anchor" href="#thanks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Thanks</h1>
+
+<p>This software was made possible by the <a href="http://www.seti.org">SETI Institute</a>.  Their mission is to explore, understand, and explain the origin and nature of life in the universe, and to apply the knowledge gained to inspire and guide present and future generations.  If you find this library helpful, you're encouraged to <a href="https://www.teamseti.org/">support SETI</a>.  And for a wonderful and incredibly large set of fascinating science lectures, check out the Institute's colloquium series on their <a href="http://www.seti.org/talks">website</a>, <a href="https://www.youtube.com/user/setiinstitute">YouTube</a>, or <a href="http://www.eventbrite.com/o/seti-institute-5571359417">EventBrite</a>.</p>
+
+<p><img src="http://upload.wikimedia.org/wikipedia/en/8/81/SETI_Institute_Logo.png" alt="SETI Institute"></p>
+
+<h1>
+<a id="license-and-support" class="anchor" href="#license-and-support" aria-hidden="true"><span class="octicon octicon-link"></span></a>License and Support</h1>
+
+<p>This project is made freely available under the <a href="http://mit-license.org/">MIT License</a>.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">FliSharp maintained by <a href="https://github.com/eliotg">eliotg</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
