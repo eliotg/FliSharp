@@ -344,12 +344,6 @@ namespace FliSharp
             name = sbName.ToString();
         }
 
-        public static bool IsGrabFrameReady(STATUS status)
-        {
-            return (STATUS.CAMERA_DATA_READY == (status & STATUS.CAMERA_DATA_READY)) && 
-                   (STATUS.CAMERA_STATUS_IDLE == (status & STATUS.CAMERA_STATUS_MASK));
-        }
-
 
         #endregion
 
@@ -882,6 +876,18 @@ namespace FliSharp
             if (0 != Status)
                 throw new Win32Exception(-Status);
             return (STATUS)status;
+        }
+
+        /// <summary>
+        /// Returns true when the camera is ready to download its data
+        /// </summary>
+        public bool IsDownloadReady()
+        {
+            STATUS status = GetDeviceStatus();
+            int remaining_exposure = GetExposureStatus();
+
+            return ( ((status == STATUS.CAMERA_STATUS_UNKNOWN) && (0 == remaining_exposure)) ||
+                     ((status != STATUS.CAMERA_STATUS_UNKNOWN) && (0 != (status & STATUS.CAMERA_DATA_READY))) );
         }
 
         [DllImport("libfli.dll")]

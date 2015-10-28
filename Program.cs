@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace FliSharp
 {
@@ -39,22 +36,29 @@ namespace FliSharp
                 // FLI.List(FLI.DOMAIN.CAMERA | FLI.DOMAIN.USB, out names);
 
                 int ul_x, ul_y, lr_x, lr_y;
-                cam.GetArrayArea(out ul_x, out ul_y, out lr_x, out lr_y);
-                ushort[,] data = new ushort[3072, 3072];
-                cam.SetImageArea(0, 0, 3072, 3072);
-                cam.SetFrameType(FLI.FRAME_TYPE.NORMAL);
+                cam.GetVisibleArea(out ul_x, out ul_y, out lr_x, out lr_y);
+                int width = lr_x - ul_x;
+                int height = lr_y - ul_y;
+                ushort[][] data = new ushort[height][];
+                cam.SetImageArea(ul_x, ul_y, lr_x, lr_y);
                 cam.SetExposureTime(500);
+                cam.SetFrameType(FLI.FRAME_TYPE.NORMAL);
+                cam.SetHBin(1);
+                cam.SetVBin(1);
+                cam.SetTDI(0, 0);
 
                 Console.WriteLine("ExposeFrame()...");
                 cam.ExposeFrame();
                 status = cam.GetDeviceStatus();
-                while (!FLI.IsGrabFrameReady(cam.GetDeviceStatus()))
-                    System.Threading.Thread.Sleep(100);
+                while (!cam.IsDownloadReady())
+                    Thread.Sleep(100);
                 
-                Console.WriteLine("EndExposure()...");
-                cam.EndExposure();
-                status = cam.GetDeviceStatus();
-                cam.GrabFrame(data);
+                Console.WriteLine("Downloading...");
+                for (int y = 0; y < height; y++)
+                {
+                    data[y] = new ushort[width];
+                    cam.GrabRow(data[y]);
+                }
             }
         }
 
