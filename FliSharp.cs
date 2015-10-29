@@ -344,7 +344,6 @@ namespace FliSharp
             name = sbName.ToString();
         }
 
-
         #endregion
 
         //
@@ -558,6 +557,11 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLIGrabRow(IntPtr dev, IntPtr buff, int width);
+        /// <summary>
+        /// download a row from the camera
+        /// </summary>
+        /// <param name="buff">it's VERY important that this buffer be sized according to the current 8-/16-bit mode
+        /// AND the current readout size, which is set by SetVisibleArea</param>
         public void GrabRow(byte[] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
@@ -565,7 +569,7 @@ namespace FliSharp
 
             try
             {
-                int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(byte));
+                int status = FLIGrabRow(dev, BuffPtr, buff.Length);
                 if (0 != status)
                     throw new Win32Exception(-status);
             }
@@ -574,6 +578,34 @@ namespace FliSharp
                 BuffGch.Free();
             }
         }
+        /// <summary>
+        /// download a row from the camera
+        /// </summary>
+        /// <param name="buff">it's VERY important that this buffer be sized according to the current 8-/16-bit mode
+        /// AND the current readout size, which is set by SetVisibleArea</param>
+        /// <param name="row">read the data into this N-th row of the 2D array</param>
+        public void GrabRow(byte[,] buff, int row)
+        {
+            GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
+            IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
+            int rowwidth = buff.GetLength(1) * sizeof(byte);
+
+            try
+            {
+                int status = FLIGrabRow(dev, BuffPtr + (row * rowwidth), buff.GetLength(1));
+                if (0 != status)
+                    throw new Win32Exception(-status);
+            }
+            finally
+            {
+                BuffGch.Free();
+            }
+        }
+        /// <summary>
+        /// download a row from the camera
+        /// </summary>
+        /// <param name="buff">it's VERY important that this buffer be sized according to the current 8-/16-bit mode
+        /// AND the current readout size, which is set by SetVisibleArea</param>
         public void GrabRow(ushort[] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
@@ -581,7 +613,32 @@ namespace FliSharp
 
             try
             {
-                int status = FLIGrabRow(dev, BuffPtr, buff.Length * sizeof(ushort));
+                int status = FLIGrabRow(dev, BuffPtr, buff.Length);
+                // check whether FLI says the operation succeeded or not
+                if (0 != status)
+                    throw new Win32Exception(-status);
+            }
+            finally
+            {
+                BuffGch.Free();
+            }
+        }
+        /// <summary>
+        /// download a row from the camera
+        /// </summary>
+        /// <param name="buff">it's VERY important that this buffer be sized according to the current 8-/16-bit mode
+        /// AND the current readout size, which is set by SetVisibleArea</param>
+        /// <param name="row">read the data into this N-th row of the 2D array</param>
+        public void GrabRow(ushort[,] buff, int row)
+        {
+            GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
+            IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
+            int rowwidth = buff.GetLength(1) * sizeof(ushort);
+
+            try
+            {
+                int status = FLIGrabRow(dev, BuffPtr + (row * rowwidth), buff.GetLength(1));
+                // check whether FLI says the operation succeeded or not
                 if (0 != status)
                     throw new Win32Exception(-status);
             }
@@ -888,6 +945,30 @@ namespace FliSharp
 
             return ( ((status == STATUS.CAMERA_STATUS_UNKNOWN) && (0 == remaining_exposure)) ||
                      ((status != STATUS.CAMERA_STATUS_UNKNOWN) && (0 != (status & STATUS.CAMERA_DATA_READY))) );
+        }
+
+        /// <summary>
+        /// Returns true when the camera is ready to download its data
+        /// </summary>
+        public bool IsDownloadReady(out int remaining_exposure)
+        {
+            STATUS status = GetDeviceStatus();
+            remaining_exposure = GetExposureStatus();
+
+            return ( ((status == STATUS.CAMERA_STATUS_UNKNOWN) && (0 == remaining_exposure)) ||
+                     ((status != STATUS.CAMERA_STATUS_UNKNOWN) && (0 != (status & STATUS.CAMERA_DATA_READY))) );
+        }
+
+        /// <summary>
+        /// Returns control to caller when the camera is ready to download its data
+        /// </summary>
+        public void WaitForDownloadReady()
+        {
+            int remaining_exposure;
+
+            // poll at 5 Hz, using camera's ETAto avoid over-waiting
+            while (!IsDownloadReady(out remaining_exposure))
+                System.Threading.Thread.Sleep(remaining_exposure > 200 ? 200 : remaining_exposure);
         }
 
         [DllImport("libfli.dll")]
