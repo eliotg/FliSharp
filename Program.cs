@@ -11,6 +11,9 @@ namespace FliSharp
 
             Console.WriteLine(FLI.GetLibVersion());
 
+            FLI.DeviceName[] names;
+            names = FLI.List(FLI.DOMAIN.CAMERA | FLI.DOMAIN.USB);
+
             using (FLI cam = new FLI("flipro0", FLI.DOMAIN.CAMERA | FLI.DOMAIN.USB))
             {
                 FLI.STATUS status = cam.GetDeviceStatus();
@@ -31,9 +34,6 @@ namespace FliSharp
 
                 cam.SetFanSpeed(FLI.FAN_SPEED.OFF);
                 cam.SetTemperature(FLI.COOLER_MAX_TEMP);
-
-                string[] names;
-                // FLI.List(FLI.DOMAIN.CAMERA | FLI.DOMAIN.USB, out names);
 
                 int ul_x, ul_y, lr_x, lr_y;
                 cam.GetVisibleArea(out ul_x, out ul_y, out lr_x, out lr_y);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel; // for Win32Exception
 using System.Runtime.InteropServices;
 using System.Text; // for StringBuilder
@@ -236,6 +237,28 @@ namespace FliSharp
         #endregion // enums
 
         //
+        #region Types
+        //
+
+        /// <summary>
+        /// Used by List() to store a list of enumerated devices
+        /// </summary>
+        public class DeviceName
+        {
+            /// <summary>
+            /// Formal device name needed by Open()
+            /// </summary>
+            public string FileName;
+
+            /// <summary>
+            /// Model name or user assigned device name
+            /// </summary>
+            public string ModelName;
+        }
+
+        #endregion
+
+        //
         #region Members
         //
 
@@ -276,30 +299,61 @@ namespace FliSharp
         }
 
         /// <summary>
-        /// TODO: This leaks the triple pointer assigned by FLIList
+        /// Internal struct used for marshaling strings
         /// </summary>
-        /// <param name="domain"></param>
-        /// <param name="names"></param>
-        /// <returns></returns>
-        [DllImport("libfli.dll")]
-        private static extern int FLIList(DOMAIN domain, out string[] names);
-        public static void List(DOMAIN domain, out string[] names)
+        [StructLayout(LayoutKind.Sequential)]
+        private class StringWrapper
         {
-            int status = FLIList(domain, out names);
-            if (0 != status)
-                throw new Win32Exception(-status);
+            public string s;
         }
-/*
-        [DllImport("libfli.dll")]
-        private static extern int FLIFreeList(string[] names);
-        public void FreeList(string[] names)
-        {
-            int status = FLIFreeList(names);
-            if (0 != status)
-                throw new Win32Exception(-status);
-        }
-*/
 
+        [DllImport("libfli.dll")]
+        private static extern int FLIList(DOMAIN domain, out IntPtr names);
+        [DllImport("libfli.dll")]
+        private static extern int FLIFreeList(IntPtr names);
+        public static DeviceName[] List(DOMAIN domain)
+        {
+            IntPtr NamesHandle;
+
+            // first, get the data, using an opaque token for the string array
+            int status = FLIList(domain, out NamesHandle);
+            if (0 != status)
+                throw new Win32Exception(-status);
+
+            // now marshal the string array into the return type we actually want
+            List<DeviceName> NameList = new List<DeviceName>();
+            IntPtr p = NamesHandle;
+            string s;
+            while (IntPtr.Zero != p)
+            {
+                // manually bring the string into managed memory
+                s = ((StringWrapper)Marshal.PtrToStructure(p, typeof(StringWrapper))).s;
+                if (null == s)
+                    break;
+
+                // parse it according to FLI SDK spec
+                int DelimPos = s.IndexOf(';');
+                DeviceName dn = new DeviceName();
+                dn.FileName = (-1 == DelimPos ? s : s.Substring(0, DelimPos));
+                dn.ModelName = (-1 == DelimPos ? null : s.Substring(DelimPos + 1, s.Length - (DelimPos + 1)));
+                // and accumulate into our list
+                NameList.Add(dn);
+
+                // move to the next pointer
+                p += sizeof(int);
+            }
+
+            // don't bother the caller with memory management now that we've made our own copy
+            FLIFreeList(NamesHandle);
+
+            // render the result to the caller!
+            return NameList.ToArray();
+        }
+
+        /*
+         * There's nothing wrong with these APIs, they're just superfluous given the above List()
+         * so hide only to reduce confusion
+        
         [DllImport("libfli.dll")]
         private static extern int FLICreateList(DOMAIN domain);
         public static void CreateList(DOMAIN domain)
@@ -343,6 +397,7 @@ namespace FliSharp
             filename = sbFilename.ToString();
             name = sbName.ToString();
         }
+        */
 
         #endregion
 
