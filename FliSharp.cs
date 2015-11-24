@@ -271,6 +271,11 @@ namespace FliSharp
         /// for IDisposable pattern
         /// </summary>
         bool disposed = false;
+        
+        /// <summary>
+        /// tracks what the minimum row size that must be passed to accept TDI data
+        /// </summary>
+        int VisibleWidth = int.MinValue;
 
         #endregion
 
@@ -666,8 +671,24 @@ namespace FliSharp
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
 
+            //
+            // Ensure buff is large enough to accept the row without corrupting memory
+            // 
+            // first make sure we've initialized the size constraint
+            if (int.MinValue == this.VisibleWidth)
+            {
+                int ul_x, ul_y, lr_x, lr_y;
+                GetVisibleArea(out ul_x, out ul_y, out lr_x, out lr_y);
+                VisibleWidth = lr_x - ul_x;
+            }
+            if (buff.Length < VisibleWidth)
+                throw new ArgumentException("buff too small for visible area: " + VisibleWidth);
+
             try
             {
+                //
+                // Download the row from the camera!
+                //
                 int status = FLIGrabRow(dev, BuffPtr, buff.Length);
                 // check whether FLI says the operation succeeded or not
                 if (0 != status)
@@ -995,11 +1016,9 @@ namespace FliSharp
         /// </summary>
         public bool IsDownloadReady()
         {
-            STATUS status = GetDeviceStatus();
-            int remaining_exposure = GetExposureStatus();
+            int remaining_exposure;
 
-            return ( ((status == STATUS.CAMERA_STATUS_UNKNOWN) && (0 == remaining_exposure)) ||
-                     ((status != STATUS.CAMERA_STATUS_UNKNOWN) && (0 != (status & STATUS.CAMERA_DATA_READY))) );
+            return IsDownloadReady(out remaining_exposure);
         }
 
         /// <summary>
@@ -1109,9 +1128,13 @@ namespace FliSharp
 
         [DllImport("libfli.dll")]
         private static extern int FLISetTDI(IntPtr dev, int tdi_rate, int flags);
-        public void SetTDI(int tdi_rate, int flags)
+        /// <summary>
+        /// Configures TDI on or off
+        /// </summary>
+        /// <param name="tdi_rate">usec per line up to 2^24-1</param>
+        public void SetTDI(int tdi_rate)
         {
-            int status = FLISetTDI(dev, tdi_rate, flags);
+            int status = FLISetTDI(dev, tdi_rate, 0);
             if (0 != status)
                 throw new Win32Exception(-status);
         }
