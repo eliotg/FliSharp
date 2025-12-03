@@ -265,7 +265,7 @@ namespace FliSharp
         /// <summary>
         /// Stores a handle to the device once it's been opened
         /// </summary>
-        IntPtr dev = (IntPtr)INVALID_DEVICE;
+        int dev = INVALID_DEVICE;
         
         /// <summary>
         /// for IDisposable pattern
@@ -411,7 +411,7 @@ namespace FliSharp
         //
 
         [DllImport("libfli.dll")]
-        private static extern int FLIOpen(out IntPtr dev, string name, DOMAIN domain);
+        private static extern int FLIOpen(out int dev, string name, DOMAIN domain);
         public FLI(string name, DOMAIN domain)
         {
             int status = FLIOpen(out dev, name, domain);
@@ -420,18 +420,18 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIClose(IntPtr dev);
+        private static extern int FLIClose(int dev);
         public void Close()
         {
             // don't do anything if there's nothing to do
-            if ((IntPtr)INVALID_DEVICE == dev)
+            if (INVALID_DEVICE == dev)
                 return;
 
             int status = FLIClose(dev);
             if (0 != status)
                 throw new Win32Exception(-status);
             // "null" out the handle
-            dev = (IntPtr)INVALID_DEVICE;
+            dev = INVALID_DEVICE;
         }
 
         ~FLI()
@@ -460,7 +460,7 @@ namespace FliSharp
         }
         
         [DllImport("libfli.dll")]
-        private static extern int FLIGetModel(IntPtr dev, StringBuilder model, int len);
+        private static extern int FLIGetModel(int dev, StringBuilder model, int len);
         public string GetModel()
         {
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
@@ -471,7 +471,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetPixelSize(IntPtr dev, out double pixel_x, out double pixel_y);
+        private static extern int FLIGetPixelSize(int dev, out double pixel_x, out double pixel_y);
         public void GetPixelSize(out double pixel_x, out double pixel_y)
         {
             int status = FLIGetPixelSize(dev, out pixel_x, out pixel_y);
@@ -480,7 +480,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetHWRevision(IntPtr dev, out int hwrev);
+        private static extern int FLIGetHWRevision(int dev, out int hwrev);
         public int GetHWRevision()
         {
             int hwrev;
@@ -491,7 +491,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetFWRevision(IntPtr dev, out int fwrev);
+        private static extern int FLIGetFWRevision(int dev, out int fwrev);
         public int GetFWRevision()
         {
             int fwrev;
@@ -502,7 +502,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetArrayArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
+        private static extern int FLIGetArrayArea(int dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
         public void GetArrayArea(out int ul_x, out int ul_y, out int lr_x, out int lr_y)
         {
             int status = FLIGetArrayArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
@@ -511,7 +511,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetVisibleArea(IntPtr dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
+        private static extern int FLIGetVisibleArea(int dev, out int ul_x, out int ul_y, out int lr_x, out int lr_y);
         public void GetVisibleArea(out int ul_x, out int ul_y, out int lr_x, out int lr_y)
         {
             int status = FLIGetVisibleArea(dev, out ul_x, out ul_y, out lr_x, out lr_y);
@@ -520,7 +520,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetExposureTime(IntPtr dev, int exptime);
+        private static extern int FLISetExposureTime(int dev, int exptime);
         public void SetExposureTime(int exptime)
         {
             int status = FLISetExposureTime(dev, exptime);
@@ -529,7 +529,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetImageArea(IntPtr dev, int ul_x, int ul_y, int lr_x, int lr_y);
+        private static extern int FLISetImageArea(int dev, int ul_x, int ul_y, int lr_x, int lr_y);
         public void SetImageArea(int ul_x, int ul_y, int lr_x, int lr_y)
         {
             int status = FLISetImageArea(dev, ul_x, ul_y, lr_x, lr_y);
@@ -538,7 +538,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetHBin(IntPtr dev, int hbin);
+        private static extern int FLISetHBin(int dev, int hbin);
         public void SetHBin(int hbin)
         {
             int status = FLISetHBin(dev, hbin);
@@ -547,7 +547,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetVBin(IntPtr dev, int vbin);
+        private static extern int FLISetVBin(int dev, int vbin);
         public void SetVBin(int vbin)
         {
             int status = FLISetVBin(dev, vbin);
@@ -556,7 +556,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetFrameType(IntPtr dev, FRAME_TYPE frametype);
+        private static extern int FLISetFrameType(int dev, FRAME_TYPE frametype);
         public void SetFrameType(FRAME_TYPE frametype)
         {
             int status = FLISetFrameType(dev, frametype);
@@ -565,7 +565,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLICancelExposure(IntPtr dev);
+        private static extern int FLICancelExposure(int dev);
         public void CancelExposure()
         {
             int status = FLICancelExposure(dev);
@@ -574,7 +574,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetExposureStatus(IntPtr dev, out int timeleft);
+        private static extern int FLIGetExposureStatus(int dev, out int timeleft);
         public int GetExposureStatus()
         {
             int timeleft;
@@ -585,7 +585,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetTemperature(IntPtr dev, double temperature);
+        private static extern int FLISetTemperature(int dev, double temperature);
         public void SetTemperature(double temperature)
         {
             int status = FLISetTemperature(dev, temperature);
@@ -594,7 +594,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetTemperature(IntPtr dev, out double temperature);
+        private static extern int FLIGetTemperature(int dev, out double temperature);
         public double GetTemperature()
         {
             double temperature;
@@ -605,7 +605,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetCoolerPower(IntPtr dev, out double power);
+        private static extern int FLIGetCoolerPower(int dev, out double power);
         public double GetCoolerPower()
         {
             double power;
@@ -616,7 +616,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGrabRow(IntPtr dev, IntPtr buff, int width);
+        private static extern int FLIGrabRow(int dev, IntPtr buff, int width);
         /// <summary>
         /// download a row from the camera
         /// </summary>
@@ -678,11 +678,15 @@ namespace FliSharp
             if (int.MinValue == this.VisibleWidth)
             {
                 int ul_x, ul_y, lr_x, lr_y;
-                GetVisibleArea(out ul_x, out ul_y, out lr_x, out lr_y);
+                GetArrayArea(out ul_x, out ul_y, out lr_x, out lr_y);
+                //GetVisibleArea(out ul_x, out ul_y, out lr_x, out lr_y);
                 VisibleWidth = lr_x - ul_x;
             }
-            if (buff.Length < VisibleWidth)
-                throw new ArgumentException("buff too small for visible area: " + VisibleWidth);
+            //if (buff.Length != VisibleWidth)
+            //    throw new ArgumentException("buff incorrect size (" + buff.Length + ") visible area (" + VisibleWidth + ")");
+
+            //for (int i = 0; i < buff.Length; i++)
+            //    buff[i] = 0x1234;
 
             try
             {
@@ -725,7 +729,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIExposeFrame(IntPtr dev);
+        private static extern int FLIExposeFrame(int dev);
         public void ExposeFrame()
         {
             int status = FLIExposeFrame(dev);
@@ -734,7 +738,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIFlushRow(IntPtr dev, int rows, int repeat);
+        private static extern int FLIFlushRow(int dev, int rows, int repeat);
         public void FlushRow(int rows, int repeat)
         {
             int status = FLIFlushRow(dev, rows, repeat);
@@ -743,7 +747,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetNFlushes(IntPtr dev, int nflushes);
+        private static extern int FLISetNFlushes(int dev, int nflushes);
         public void SetNFlushes(int nflushes)
         {
             int status = FLISetNFlushes(dev, nflushes);
@@ -752,7 +756,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetBitDepth(IntPtr dev, BIT_DEPTH bitdepth);
+        private static extern int FLISetBitDepth(int dev, BIT_DEPTH bitdepth);
         public void SetBitDepth(BIT_DEPTH bitdepth)
         {
             int status = FLISetBitDepth(dev, bitdepth);
@@ -761,7 +765,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIReadIOPort(IntPtr dev, out int ioportset);
+        private static extern int FLIReadIOPort(int dev, out int ioportset);
         public int ReadIOPort()
         {
             int ioportset;
@@ -772,7 +776,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIWriteIOPort(IntPtr dev, int ioportset);
+        private static extern int FLIWriteIOPort(int dev, int ioportset);
         public void WriteIOPort(int ioportset)
         {
             int status = FLIWriteIOPort(dev, ioportset);
@@ -781,7 +785,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIConfigureIOPort(IntPtr dev, int ioportset);
+        private static extern int FLIConfigureIOPort(int dev, int ioportset);
         public void ConfigureIOPort(int ioportset)
         {
             int status = FLIConfigureIOPort(dev, ioportset);
@@ -790,7 +794,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLILockDevice(IntPtr dev);
+        private static extern int FLILockDevice(int dev);
         public void LockDevice()
         {
             int status = FLILockDevice(dev);
@@ -799,7 +803,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIUnlockDevice(IntPtr dev);
+        private static extern int FLIUnlockDevice(int dev);
         public void UnlockDevice()
         {
             int status = FLIUnlockDevice(dev);
@@ -808,7 +812,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIControlShutter(IntPtr dev, SHUTTER shutter);
+        private static extern int FLIControlShutter(int dev, SHUTTER shutter);
         public void ControlShutter(SHUTTER shutter)
         {
             int status = FLIControlShutter(dev, shutter);
@@ -817,7 +821,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIControlBackgroundFlush(IntPtr dev, BGFLUSH bgflush);
+        private static extern int FLIControlBackgroundFlush(int dev, BGFLUSH bgflush);
         public void ControlBackgroundFlush(BGFLUSH bgflush)
         {
             int status = FLIControlBackgroundFlush(dev, bgflush);
@@ -826,7 +830,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetDAC(IntPtr dev, uint dacset);
+        private static extern int FLISetDAC(int dev, uint dacset);
         public void SetDAC(uint dacset)
         {
             int status = FLISetDAC(dev, dacset);
@@ -835,7 +839,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetFilterName(IntPtr dev, int filter, StringBuilder name, int len);
+        private static extern int FLIGetFilterName(int dev, int filter, StringBuilder name, int len);
         public string GetFilterName(int filter)
         {
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
@@ -846,7 +850,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetActiveWheel(IntPtr dev, int wheel);
+        private static extern int FLISetActiveWheel(int dev, int wheel);
         public void SetActiveWheel(int wheel)
         {
             int status = FLISetActiveWheel(dev, wheel);
@@ -855,7 +859,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetActiveWheel(IntPtr dev, out int wheel);
+        private static extern int FLIGetActiveWheel(int dev, out int wheel);
         public int GetActiveWheel()
         {
             int wheel;
@@ -867,7 +871,7 @@ namespace FliSharp
 
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetFilterPos(IntPtr dev, int filter);
+        private static extern int FLISetFilterPos(int dev, int filter);
         public void SetFilterPos(int filter)
         {
             int status = FLISetFilterPos(dev, filter);
@@ -876,7 +880,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetFilterPos(IntPtr dev, out int filter);
+        private static extern int FLIGetFilterPos(int dev, out int filter);
         public int GetFilterPos()
         {
             int filter;
@@ -887,7 +891,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetFilterCount(IntPtr dev, out int filter);
+        private static extern int FLIGetFilterCount(int dev, out int filter);
         public int GetFilterCount()
         {
             int filter;
@@ -899,7 +903,7 @@ namespace FliSharp
 
 
         [DllImport("libfli.dll")]
-        private static extern int FLIStepMotor(IntPtr dev, int steps);
+        private static extern int FLIStepMotor(int dev, int steps);
         public void StepMotor(int steps)
         {
             int status = FLIStepMotor(dev, steps);
@@ -908,7 +912,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIStepMotorAsync(IntPtr dev, int steps);
+        private static extern int FLIStepMotorAsync(int dev, int steps);
         public void StepMotorAsync(int steps)
         {
             int status = FLIStepMotorAsync(dev, steps);
@@ -917,7 +921,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetStepperPosition(IntPtr dev, out int position);
+        private static extern int FLIGetStepperPosition(int dev, out int position);
         public int GetStepperPosition()
         {
             int position;
@@ -928,7 +932,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetStepsRemaining(IntPtr dev, out int steps);
+        private static extern int FLIGetStepsRemaining(int dev, out int steps);
         public int GetStepsRemaining()
         {
             int steps;
@@ -939,7 +943,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIHomeFocuser(IntPtr dev);
+        private static extern int FLIHomeFocuser(int dev);
         public void HomeFocuser()
         {
             int status = FLIHomeFocuser(dev);
@@ -948,7 +952,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIReadTemperature(IntPtr dev, CHANNEL channel, out double temperature);
+        private static extern int FLIReadTemperature(int dev, CHANNEL channel, out double temperature);
         public double ReadTemperature(CHANNEL channel)
         {
             double temperature;
@@ -959,7 +963,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetFocuserExtent(IntPtr dev, out int extent);
+        private static extern int FLIGetFocuserExtent(int dev, out int extent);
         public int GetFocuserExtent()
         {
             int extent;
@@ -970,7 +974,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIUsbBulkIO(IntPtr dev, int ep, IntPtr buf, ref int len);
+        private static extern int FLIUsbBulkIO(int dev, int ep, IntPtr buf, ref int len);
         private int UsbBulkIO(int ep, byte[] buf)
         {
             int len = buf.Length;
@@ -1001,7 +1005,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetDeviceStatus(IntPtr dev, out int status);
+        private static extern int FLIGetDeviceStatus(int dev, out int status);
         public STATUS GetDeviceStatus()
         {
             int status;
@@ -1046,7 +1050,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetCameraModeString(IntPtr dev, int mode_index, StringBuilder mode_string, int siz);
+        private static extern int FLIGetCameraModeString(int dev, int mode_index, StringBuilder mode_string, int siz);
         public string GetCameraModeString(int mode_index)
         {
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
@@ -1057,7 +1061,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetCameraMode(IntPtr dev, out int mode_index);
+        private static extern int FLIGetCameraMode(int dev, out int mode_index);
         public int GetCameraMode()
         {
             int mode_index;
@@ -1068,7 +1072,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetCameraMode(IntPtr dev, int mode_index);
+        private static extern int FLISetCameraMode(int dev, int mode_index);
         public void SetCameraMode(int mode_index)
         {
             int status = FLISetCameraMode(dev, mode_index);
@@ -1077,7 +1081,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIHomeDevice(IntPtr dev);
+        private static extern int FLIHomeDevice(int dev);
         public void HomeDevice()
         {
             int status = FLIHomeDevice(dev);
@@ -1086,7 +1090,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGrabFrame(IntPtr dev, IntPtr buff, int buffsize, out int bytesgrabbed);
+        private static extern int FLIGrabFrame(int dev, IntPtr buff, int buffsize, out int bytesgrabbed);
         public void GrabFrame(byte[,] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
@@ -1127,7 +1131,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetTDI(IntPtr dev, int tdi_rate, int flags);
+        private static extern int FLISetTDI(int dev, int tdi_rate, int flags);
         /// <summary>
         /// Configures TDI on or off
         /// </summary>
@@ -1140,7 +1144,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGrabVideoFrame(IntPtr dev, IntPtr buff, int size);
+        private static extern int FLIGrabVideoFrame(int dev, IntPtr buff, int size);
         public void GrabVideoFrame(byte[,] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
@@ -1157,7 +1161,7 @@ namespace FliSharp
                 BuffGch.Free();
             }
         }
-        public void GrabVideoFrame(IntPtr dev, ushort[,] buff)
+        public void GrabVideoFrame(int dev, ushort[,] buff)
         {
             GCHandle BuffGch = GCHandle.Alloc(buff, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
@@ -1175,7 +1179,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIStopVideoMode(IntPtr dev);
+        private static extern int FLIStopVideoMode(int dev);
         public void StopVideoMode()
         {
             int status = FLIStopVideoMode(dev);
@@ -1184,7 +1188,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIStartVideoMode(IntPtr dev);
+        private static extern int FLIStartVideoMode(int dev);
         public void StartVideoMode()
         {
             int status = FLIStartVideoMode(dev);
@@ -1193,7 +1197,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetSerialString(IntPtr dev, StringBuilder serial, int len);
+        private static extern int FLIGetSerialString(int dev, StringBuilder serial, int len);
         public string GetSerialString()
         {
             StringBuilder sb = new StringBuilder(MAX_STRING_LEN);
@@ -1204,7 +1208,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIEndExposure(IntPtr dev);
+        private static extern int FLIEndExposure(int dev);
         public void EndExposure()
         {
             int status = FLIEndExposure(dev);
@@ -1213,7 +1217,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLITriggerExposure(IntPtr dev);
+        private static extern int FLITriggerExposure(int dev);
         public void TriggerExposure()
         {
             int status = FLITriggerExposure(dev);
@@ -1222,7 +1226,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetFanSpeed(IntPtr dev, FAN_SPEED fan_speed);
+        private static extern int FLISetFanSpeed(int dev, FAN_SPEED fan_speed);
         public void SetFanSpeed(FAN_SPEED fan_speed)
         {
             int status = FLISetFanSpeed(dev, fan_speed);
@@ -1231,7 +1235,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLISetVerticalTableEntry(IntPtr dev, int index, int height, int bin, int mode);
+        private static extern int FLISetVerticalTableEntry(int dev, int index, int height, int bin, int mode);
         public void SetVerticalTableEntry(int index, int height, int bin, int mode)
         {
             int status = FLISetVerticalTableEntry(dev, index, height, bin, mode);
@@ -1240,7 +1244,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetVerticalTableEntry(IntPtr dev, int index, out int height, out int bin, out int mode);
+        private static extern int FLIGetVerticalTableEntry(int dev, int index, out int height, out int bin, out int mode);
         public void GetVerticalTableEntry(int index, out int height, out int bin, out int mode)
         {
             int status = FLIGetVerticalTableEntry(dev, index, out height, out bin, out mode);
@@ -1249,7 +1253,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIGetReadoutDimensions(IntPtr dev, out int width, out int hoffset, out int hbin, out int height, out int voffset, out int vbin);
+        private static extern int FLIGetReadoutDimensions(int dev, out int width, out int hoffset, out int hbin, out int height, out int voffset, out int vbin);
         public void GetReadoutDimensions(out int width, out int hoffset, out int hbin, out int height, out int voffset, out int vbin)
         {
             int status = FLIGetReadoutDimensions(dev, out width, out hoffset, out hbin, out height, out voffset, out vbin);
@@ -1258,7 +1262,7 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIEnableVerticalTable(IntPtr dev, int width, int offset, int flags);
+        private static extern int FLIEnableVerticalTable(int dev, int width, int offset, int flags);
         public void EnableVerticalTable(int width, int offset, int flags)
         {
             int status = FLIEnableVerticalTable(dev, width, offset, flags);
@@ -1267,15 +1271,15 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIReadUserEEPROM(IntPtr dev, int loc, int address, int length, IntPtr rbuf);
-        public void ReadUserEEPROM(int loc, int address, byte[] rbuf)
+        private static extern int FLIReadUserEEPROM(int dev, int loc, IntPtr address, int length, IntPtr rbuf);
+        public void ReadUserEEPROM(int loc, byte[] rbuf)
         {
             GCHandle BuffGch = GCHandle.Alloc(rbuf, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
 
             try
             {
-                int status = FLIReadUserEEPROM(dev, loc, address, rbuf.Length, BuffPtr);
+                int status = FLIReadUserEEPROM(dev, loc, BuffPtr, rbuf.Length, BuffPtr);
                 if (0 != status)
                     throw new Win32Exception(-status);
             }
@@ -1286,15 +1290,15 @@ namespace FliSharp
         }
 
         [DllImport("libfli.dll")]
-        private static extern int FLIWriteUserEEPROM(IntPtr dev, int loc, int address, int length, IntPtr wbuf);
-        public void WriteUserEEPROM(int loc, int address, byte[] wbuf)
+        private static extern int FLIWriteUserEEPROM(int dev, int loc, IntPtr address, int length, IntPtr wbuf);
+        public void WriteUserEEPROM(int loc, byte[] wbuf)
         {
             GCHandle BuffGch = GCHandle.Alloc(wbuf, GCHandleType.Pinned);
             IntPtr BuffPtr = BuffGch.AddrOfPinnedObject();
 
             try
             {
-                int status = FLIWriteUserEEPROM(dev, loc, address, wbuf.Length, BuffPtr);
+                int status = FLIWriteUserEEPROM(dev, loc, BuffPtr, wbuf.Length, BuffPtr);
                 if (0 != status)
                     throw new Win32Exception(-status);
             }
